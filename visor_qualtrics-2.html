@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f8fafc;padding:.75rem}
+h3{font-size:14px;font-weight:600;color:#0f172a;margin-bottom:3px}
+.sub{font-size:11px;color:#64748b;margin-bottom:.75rem;line-height:1.4}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.75rem}
+.stat{background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px;text-align:center}
+.sv{font-size:18px;font-weight:600;font-family:monospace}
+.sl{font-size:10px;color:#64748b;margin-top:1px}
+.toggle{display:flex;background:#f1f5f9;border-radius:6px;padding:3px;margin-bottom:.5rem;gap:2px}
+.tbtn{flex:1;padding:7px 4px;border-radius:4px;border:none;font-size:11px;font-weight:500;cursor:pointer;background:transparent;color:#64748b;text-align:center}
+.tbtn.on{background:#fff;color:#0f172a;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.leg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.5rem}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* DESKTOP: tabla normal */
+.desktop-view{display:block}
+.mobile-view{display:none}
+
+/* MOBILE: tarjetas */
+@media(max-width:600px){
+  .desktop-view{display:none}
+  .mobile-view{display:block}
+}
+
+/* Tabla desktop */
+.tw{overflow-x:auto;border:1px solid #e2e8f0;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:11px;font-family:monospace}
+thead th{background:#f8fafc;padding:7px 8px;text-align:left;font-size:10px;font-weight:500;color:#64748b;border-bottom:1px solid #e2e8f0;white-space:nowrap;font-family:system-ui;text-transform:uppercase}
+tbody tr{border-bottom:1px solid #f1f5f9}
+tbody tr:last-child{border-bottom:none}
+td{padding:5px 8px;white-space:nowrap;color:#1e293b}
+
+/* Tarjetas mobile */
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;overflow:hidden}
+.card-header{padding:8px 12px;background:#f8fafc;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+.card-id{font-size:12px;font-weight:600;color:#0f172a;font-family:monospace}
+.card-num{font-size:10px;color:#94a3b8}
+.card-body{padding:8px 12px}
+.card-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f8fafc;font-size:12px}
+.card-row:last-child{border-bottom:none}
+.card-label{color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.03em;font-weight:500}
+.card-val{color:#1e293b;font-family:monospace;font-size:12px;text-align:right}
+.card-changed{border-left:3px solid #16a34a}
+
+/* badges */
+.be{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500;background:#fdf0ef;color:#c0392b}
+.bw{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500;background:#fffbeb;color:#b45309}
+.bf{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500;background:#ecfdf5;color:#16a34a}
+.bo{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500;background:#f1f5f9;color:#64748b}
+
+.note{font-size:10px;color:#94a3b8;margin-top:.5rem;font-style:italic;line-height:1.5}
+</style>
+</head>
+<body>
+<h3>Dataset house_sales.csv</h3>
+<p class="sub">25 filas representativas del dataset completo (1.500 registros) mostrando todos los tipos de error</p>
+
+<div class="stats">
+  <div class="stat"><div class="sv" style="color:#c0392b">73</div><div class="sl">City con "--"</div></div>
+  <div class="stat"><div class="sv" style="color:#b45309">100</div><div class="sl">House type abreviado</div></div>
+  <div class="stat"><div class="sv" style="color:#b45309">31</div><div class="sl">Months listed nulos</div></div>
+  <div class="stat"><div class="sv" style="color:#b45309">1.500</div><div class="sl">Area con "sq.m."</div></div>
+</div>
+
+<div class="toggle">
+  <button class="tbtn on" id="bb" onclick="sv('before')">Antes</button>
+  <button class="tbtn" id="ba" onclick="sv('after')">Despues</button>
+  <button class="tbtn" id="bd" onclick="sv('diff')">Cambios</button>
+</div>
+
+<div class="leg" id="lb">
+  <div class="li"><div class="ld" style="background:#fdf0ef;border:1px solid #f5c6c3"></div>Erroneo/nulo</div>
+  <div class="li"><div class="ld" style="background:#fffbeb;border:1px solid #fde68a"></div>Formato incorrecto</div>
+  <div class="li"><div class="ld" style="background:#fff;border:1px solid #e2e8f0"></div>Correcto</div>
+</div>
+<div class="leg" id="la" style="display:none">
+  <div class="li"><div class="ld" style="background:#ecfdf5;border:1px solid #bbf7d0"></div>Corregido</div>
+  <div class="li"><div class="ld" style="background:#f1f5f9;border:1px solid #e2e8f0"></div>Sin cambios</div>
+</div>
+<div class="leg" id="ld2" style="display:none">
+  <div class="li"><div class="ld" style="background:#fdf0ef;border:1px solid #f5c6c3"></div>Original</div>
+  <div class="li"><div class="ld" style="background:#ecfdf5;border:1px solid #bbf7d0"></div>Corregido</div>
+</div>
+
+<!-- DESKTOP TABLE -->
+<div class="desktop-view">
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>house_id</th><th>city</th><th>sale_price</th><th>sale_date</th><th>months_listed</th><th>bedrooms</th><th>house_type</th><th>area</th></tr></thead>
+    <tbody id="tb-desk"></tbody>
+  </table></div>
+</div>
+
+<!-- MOBILE CARDS -->
+<div class="mobile-view" id="tb-mob"></div>
+
+<p class="note">Media months_listed = 5.9 · Moda house_type = Detached · Sufijo sq.m. eliminado en todas las filas</p>
+
+<script>
+var R=[{"house_id": "1217792", "city": "Silvertown", "sale_price": "55943", "sale_date": "2021-09-12", "months_listed": "5.4", "bedrooms": "2", "house_type": "Semi-detached", "area": "107.8 sq.m."}, {"house_id": "1900913", "city": "Silvertown", "sale_price": "384677", "sale_date": "2021-01-17", "months_listed": "6.3", "bedrooms": "5", "house_type": "Detached", "area": "498.8 sq.m."}, {"house_id": "1174927", "city": "Riverford", "sale_price": "281707", "sale_date": "2021-11-10", "months_listed": "6.9", "bedrooms": "6", "house_type": "Detached", "area": "542.5 sq.m."}, {"house_id": "1773666", "city": "Silvertown", "sale_price": "373251", "sale_date": "2020-04-13", "months_listed": "6.1", "bedrooms": "6", "house_type": "Det.", "area": "528.4 sq.m."}, {"house_id": "1258487", "city": "Silvertown", "sale_price": "328885", "sale_date": "2020-09-24", "months_listed": "8.7", "bedrooms": "5", "house_type": "Detached", "area": "477.1 sq.m."}, {"house_id": "1353069", "city": "Teasdale", "sale_price": "429914", "sale_date": "2021-05-18", "months_listed": null, "bedrooms": "6", "house_type": "Detached", "area": "544.6 sq.m."}, {"house_id": "1155864", "city": "Teasdale", "sale_price": "284440", "sale_date": "2020-10-15", "months_listed": "5.8", "bedrooms": "4", "house_type": "Detached", "area": "371.3 sq.m."}, {"house_id": "1358764", "city": "Poppleton", "sale_price": "211203", "sale_date": "2020-05-04", "months_listed": "3.0", "bedrooms": "4", "house_type": "Detached", "area": "371.5 sq.m."}, {"house_id": "1470021", "city": "Riverford", "sale_price": "158198", "sale_date": "2020-08-18", "months_listed": "5.3", "bedrooms": "4", "house_type": "Detached", "area": "316.8 sq.m."}, {"house_id": "1239607", "city": "Poppleton", "sale_price": "173098", "sale_date": "2020-04-16", "months_listed": null, "bedrooms": "3", "house_type": "Detached", "area": "296.9 sq.m."}, {"house_id": "1865882", "city": "Silvertown", "sale_price": "77037", "sale_date": "2020-09-29", "months_listed": "6.4", "bedrooms": "2", "house_type": "Semi", "area": "168.6 sq.m."}, {"house_id": "1247170", "city": "Silvertown", "sale_price": "396370", "sale_date": "2022-09-05", "months_listed": "5.4", "bedrooms": "6", "house_type": "Det.", "area": "553.8 sq.m."}, {"house_id": "1981646", "city": "Riverford", "sale_price": "26348", "sale_date": "2022-10-03", "months_listed": null, "bedrooms": "2", "house_type": "Terraced", "area": "109.0 sq.m."}, {"house_id": "1487654", "city": "--", "sale_price": "72586", "sale_date": "2020-05-28", "months_listed": "5.4", "bedrooms": "2", "house_type": "Semi-detached", "area": "147.4 sq.m."}, {"house_id": "1589617", "city": "Poppleton", "sale_price": "157600", "sale_date": "2021-10-11", "months_listed": null, "bedrooms": "3", "house_type": "Detached", "area": "260.3 sq.m."}, {"house_id": "1690740", "city": "--", "sale_price": "338647", "sale_date": "2022-12-28", "months_listed": "3.7", "bedrooms": "5", "house_type": "Detached", "area": "459.5 sq.m."}, {"house_id": "1879053", "city": "Teasdale", "sale_price": "87891", "sale_date": "2022-07-08", "months_listed": "3.2", "bedrooms": "2", "house_type": "Semi", "area": "147.6 sq.m."}, {"house_id": "1262675", "city": "Silvertown", "sale_price": "301292", "sale_date": "2021-10-07", "months_listed": "4.8", "bedrooms": "5", "house_type": "Det.", "area": "435.2 sq.m."}, {"house_id": "1409662", "city": "--", "sale_price": "357657", "sale_date": "2021-08-06", "months_listed": "8.7", "bedrooms": "6", "house_type": "Detached", "area": "591.5 sq.m."}, {"house_id": "1032875", "city": "Silvertown", "sale_price": "354427", "sale_date": "2021-05-14", "months_listed": "2.3", "bedrooms": "5", "house_type": "Det.", "area": "468.1 sq.m."}, {"house_id": "1091914", "city": "--", "sale_price": "94535", "sale_date": "2021-09-16", "months_listed": null, "bedrooms": "2", "house_type": "Semi-detached", "area": "187.3 sq.m."}, {"house_id": "1214267", "city": "--", "sale_price": "140986", "sale_date": "2022-02-10", "months_listed": "3.7", "bedrooms": "3", "house_type": "Semi-detached", "area": "226.1 sq.m."}, {"house_id": "1618928", "city": "Silvertown", "sale_price": "56447", "sale_date": "2022-11-23", "months_listed": "7.7", "bedrooms": "2", "house_type": "Semi", "area": "101.0 sq.m."}, {"house_id": "1836761", "city": "Riverford", "sale_price": "52460", "sale_date": "2022-09-28", "months_listed": "4.4", "bedrooms": "3", "house_type": "Terr.", "area": "209.0 sq.m."}, {"house_id": "1210299", "city": "Poppleton", "sale_price": "45820", "sale_date": "2020-03-13", "months_listed": "6.3", "bedrooms": "2", "house_type": "Terr.", "area": "158.1 sq.m."}];
+var C=[{"house_id": "1217792", "city": "Silvertown", "sale_price": "55943", "sale_date": "2021-09-12", "months_listed": "5.4", "bedrooms": "2", "house_type": "Semi-detached", "area": "107.8"}, {"house_id": "1900913", "city": "Silvertown", "sale_price": "384677", "sale_date": "2021-01-17", "months_listed": "6.3", "bedrooms": "5", "house_type": "Detached", "area": "498.8"}, {"house_id": "1174927", "city": "Riverford", "sale_price": "281707", "sale_date": "2021-11-10", "months_listed": "6.9", "bedrooms": "6", "house_type": "Detached", "area": "542.5"}, {"house_id": "1773666", "city": "Silvertown", "sale_price": "373251", "sale_date": "2020-04-13", "months_listed": "6.1", "bedrooms": "6", "house_type": "Detached", "area": "528.4"}, {"house_id": "1258487", "city": "Silvertown", "sale_price": "328885", "sale_date": "2020-09-24", "months_listed": "8.7", "bedrooms": "5", "house_type": "Detached", "area": "477.1"}, {"house_id": "1353069", "city": "Teasdale", "sale_price": "429914", "sale_date": "2021-05-18", "months_listed": "5.9", "bedrooms": "6", "house_type": "Detached", "area": "544.6"}, {"house_id": "1155864", "city": "Teasdale", "sale_price": "284440", "sale_date": "2020-10-15", "months_listed": "5.8", "bedrooms": "4", "house_type": "Detached", "area": "371.3"}, {"house_id": "1358764", "city": "Poppleton", "sale_price": "211203", "sale_date": "2020-05-04", "months_listed": "3.0", "bedrooms": "4", "house_type": "Detached", "area": "371.5"}, {"house_id": "1470021", "city": "Riverford", "sale_price": "158198", "sale_date": "2020-08-18", "months_listed": "5.3", "bedrooms": "4", "house_type": "Detached", "area": "316.8"}, {"house_id": "1239607", "city": "Poppleton", "sale_price": "173098", "sale_date": "2020-04-16", "months_listed": "5.9", "bedrooms": "3", "house_type": "Detached", "area": "296.9"}, {"house_id": "1865882", "city": "Silvertown", "sale_price": "77037", "sale_date": "2020-09-29", "months_listed": "6.4", "bedrooms": "2", "house_type": "Semi-detached", "area": "168.6"}, {"house_id": "1247170", "city": "Silvertown", "sale_price": "396370", "sale_date": "2022-09-05", "months_listed": "5.4", "bedrooms": "6", "house_type": "Detached", "area": "553.8"}, {"house_id": "1981646", "city": "Riverford", "sale_price": "26348", "sale_date": "2022-10-03", "months_listed": "5.9", "bedrooms": "2", "house_type": "Terraced", "area": "109.0"}, {"house_id": "1487654", "city": "Unknown", "sale_price": "72586", "sale_date": "2020-05-28", "months_listed": "5.4", "bedrooms": "2", "house_type": "Semi-detached", "area": "147.4"}, {"house_id": "1589617", "city": "Poppleton", "sale_price": "157600", "sale_date": "2021-10-11", "months_listed": "5.9", "bedrooms": "3", "house_type": "Detached", "area": "260.3"}, {"house_id": "1690740", "city": "Unknown", "sale_price": "338647", "sale_date": "2022-12-28", "months_listed": "3.7", "bedrooms": "5", "house_type": "Detached", "area": "459.5"}, {"house_id": "1879053", "city": "Teasdale", "sale_price": "87891", "sale_date": "2022-07-08", "months_listed": "3.2", "bedrooms": "2", "house_type": "Semi-detached", "area": "147.6"}, {"house_id": "1262675", "city": "Silvertown", "sale_price": "301292", "sale_date": "2021-10-07", "months_listed": "4.8", "bedrooms": "5", "house_type": "Detached", "area": "435.2"}, {"house_id": "1409662", "city": "Unknown", "sale_price": "357657", "sale_date": "2021-08-06", "months_listed": "8.7", "bedrooms": "6", "house_type": "Detached", "area": "591.5"}, {"house_id": "1032875", "city": "Silvertown", "sale_price": "354427", "sale_date": "2021-05-14", "months_listed": "2.3", "bedrooms": "5", "house_type": "Detached", "area": "468.1"}, {"house_id": "1091914", "city": "Unknown", "sale_price": "94535", "sale_date": "2021-09-16", "months_listed": "5.9", "bedrooms": "2", "house_type": "Semi-detached", "area": "187.3"}, {"house_id": "1214267", "city": "Unknown", "sale_price": "140986", "sale_date": "2022-02-10", "months_listed": "3.7", "bedrooms": "3", "house_type": "Semi-detached", "area": "226.1"}, {"house_id": "1618928", "city": "Silvertown", "sale_price": "56447", "sale_date": "2022-11-23", "months_listed": "7.7", "bedrooms": "2", "house_type": "Semi-detached", "area": "101.0"}, {"house_id": "1836761", "city": "Riverford", "sale_price": "52460", "sale_date": "2022-09-28", "months_listed": "4.4", "bedrooms": "3", "house_type": "Terraced", "area": "209.0"}, {"house_id": "1210299", "city": "Poppleton", "sale_price": "45820", "sale_date": "2020-03-13", "months_listed": "6.3", "bedrooms": "2", "house_type": "Terraced", "area": "158.1"}];
+var COLS=["house_id","city","sale_price","sale_date","months_listed","bedrooms","house_type","area"];
+var LABELS={"house_id":"ID","city":"Ciudad","sale_price":"Precio ($)","sale_date":"Fecha venta","months_listed":"Meses listado","bedrooms":"Habitaciones","house_type":"Tipo casa","area":"Area"};
+
+function dirty(r,col){
+  if(col==="city") return r[col]==="--"||r[col]===null;
+  if(col==="house_type") return ["Det.","Semi","Terr."].includes(r[col]);
+  if(col==="months_listed") return r[col]===null;
+  if(col==="area") return r[col]&&r[col].includes("sq.m.");
+  return false;
+}
+function anyDirty(r){return COLS.some(function(c){return dirty(r,c);});}
+
+function cellVal(r,c,col,mode){
+  var raw=r[col]===null?"NULL":r[col];
+  var cln=c[col];
+  var d=dirty(r,col);
+  if(mode==="before"){
+    if(d){var cl=(col==="area"||col==="house_type")?"bw":"be"; return "<span class='"+cl+"'>"+raw+"</span>";}
+    return raw;
+  } else if(mode==="after"){
+    return "<span class='"+(d?"bf":"bo")+"'>"+cln+"</span>";
+  } else {
+    if(d) return "<span class='be'>"+raw+"</span> <span style='color:#94a3b8;font-size:9px'>→</span> <span class='bf'>"+cln+"</span>";
+    return "<span style='color:#94a3b8'>"+raw+"</span>";
+  }
+}
+
+function sv(mode){
+  ["bb","ba","bd"].forEach(function(id){document.getElementById(id).classList.remove("on");});
+  document.getElementById(mode==="before"?"bb":mode==="after"?"ba":"bd").classList.add("on");
+  ["lb","la","ld2"].forEach(function(id){document.getElementById(id).style.display="none";});
+  document.getElementById(mode==="before"?"lb":mode==="after"?"la":"ld2").style.display="flex";
+
+  // Desktop table
+  var desk=document.getElementById("tb-desk"); var dhtml="";
+  R.forEach(function(r,i){
+    var c=C[i]; var changed=anyDirty(r);
+    var rc=(mode==="after"&&changed)?' style="border-left:3px solid #16a34a"':"";
+    var cells="<td style='color:#94a3b8;font-size:10px'>"+(i+1)+"</td>";
+    COLS.forEach(function(col){ cells+="<td>"+cellVal(r,c,col,mode)+"</td>"; });
+    dhtml+="<tr"+rc+">"+cells+"</tr>";
+  });
+  desk.innerHTML=dhtml;
+
+  // Mobile cards
+  var mob=document.getElementById("tb-mob"); var mhtml="";
+  R.forEach(function(r,i){
+    var c=C[i]; var changed=anyDirty(r);
+    var cc=changed&&mode==="after"?" card-changed":"";
+    mhtml+="<div class='card"+cc+"'>";
+    mhtml+="<div class='card-header'><span class='card-id'>"+r.house_id+"</span><span class='card-num'>Fila "+(i+1)+"</span></div>";
+    mhtml+="<div class='card-body'>";
+    ["city","sale_price","sale_date","months_listed","bedrooms","house_type","area"].forEach(function(col){
+      mhtml+="<div class='card-row'><span class='card-label'>"+LABELS[col]+"</span><span class='card-val'>"+cellVal(r,c,col,mode)+"</span></div>";
+    });
+    mhtml+="</div></div>";
+  });
+  mob.innerHTML=mhtml;
+}
+
+sv("before");
+</script>
+</body></html>
