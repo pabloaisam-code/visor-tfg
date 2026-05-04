@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Sesgo Reputacional por IA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #F7F6F3;
+    --bg2: #EEECEA;
+    --surface: #FFFFFF;
+    --border: #E0DDD8;
+    --border2: #CBC8C2;
+    --text: #1A1916;
+    --text2: #6B6860;
+    --text3: #9C9A94;
+    --green: #1D9E75;
+    --green-bg: #E6F5EF;
+    --green-dark: #085041;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --purple-dark: #3C3489;
+    --red: #C23B3B;
+    --red-bg: #FBEAEA;
+    --red-border: #E8B4B4;
+    --amber: #B45309;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .app {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .app-header {
+    margin-bottom: 24px;
+  }
+
+  .app-header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+
+  .app-header p {
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .tab-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: var(--bg2);
+    padding: 4px;
+    border-radius: var(--radius);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .tab.active-m {
+    background: var(--green-bg);
+    color: var(--green-dark);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .tab.active-r {
+    background: var(--purple-bg);
+    color: var(--purple-dark);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .view { display: none; }
+  .view.visible { display: block; }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.2px;
+  }
+
+  .card-sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .slabel {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-of-type { margin-bottom: 0; }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg2);
+    outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--text);
+    cursor: pointer;
+    border: 2px solid var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .fval {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 160px;
+    text-align: right;
+  }
+
+  .ni {
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .ni:focus { border-color: var(--border2); }
+  .ni::placeholder { color: var(--text3); }
+
+  .btn-g {
+    width: 100%;
+    padding: 12px;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background .2s;
+    letter-spacing: -0.1px;
+  }
+
+  .btn-g:hover { background: #178a65; }
+
+  .btn-r {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    display: none;
+    transition: background .2s;
+  }
+
+  .btn-r:hover { background: var(--border); }
+
+  .sent {
+    background: var(--green-bg);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--green-dark);
+    display: none;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .ep {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .kbig {
+    border: 1px solid var(--red-border);
+    border-radius: var(--radius);
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 10px;
+    background: var(--red-bg);
+  }
+
+  .kbig-l {
+    font-size: 12px;
+    color: var(--red);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .kbig-v {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--red);
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+
+  .kbig-s {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .krow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .km {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .kml {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .kmv {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+  }
+
+  .bh { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .bl { background: var(--green-bg); color: var(--green-dark); border: 1px solid #b3dece; }
+
+  .mrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background .15s;
+  }
+
+  .mrow:last-child { border-bottom: none; }
+  .mrow:hover { background: var(--bg); }
+  .mrow.sel { background: var(--purple-bg); }
+
+  .av {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .mi { flex: 1; }
+  .mn { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .md { font-size: 12px; color: var(--text3); }
+
+  .rt { height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; margin-top: 5px; width: 80px; }
+  .rf { height: 100%; border-radius: 3px; }
+
+  .sr { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .sn { font-size: 12px; color: var(--text2); width: 160px; flex-shrink: 0; text-align: right; }
+  .st { flex: 1; height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
+  .sb { height: 100%; border-radius: 3px; }
+  .sv { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); width: 40px; text-align: right; }
+
+  .ins {
+    border-left: 2px solid var(--purple);
+    padding: 10px 14px;
+    background: var(--purple-bg);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-top: 14px;
+  }
+
+  .ins p { font-size: 13px; color: var(--purple-dark); line-height: 1.5; }
+
+  .nb {
+    background: var(--green-bg);
+    color: var(--green-dark);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .div { height: 1px; background: var(--border); margin: 16px 0; }
+
+  .mgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .mc {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .ml { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .mv { font-size: 22px; font-weight: 600; }
+
+  .empty {
+    text-align: center;
+    padding: 28px;
+    font-size: 13px;
+    color: var(--text3);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <h1>Calculadora de Sesgo Reputacional por IA</h1>
+    <p>Detecta qué perfiles de evaluador generan sesgo cuando un empleado declara uso de IA</p>
+  </div>
+
+  <div class="tab-row">
+    <button class="tab active-m" onclick="sv('manager',this)">Vista manager</button>
+    <button class="tab" onclick="sv('rrhh',this)" id="rtab">Vista RRHH</button>
+  </div>
+
+  <div class="view visible" id="view-manager">
+    <div class="card">
+      <p class="card-title">Encuesta de cultura digital</p>
+      <p class="card-sub">Completa estas preguntas sobre tu relación con las herramientas digitales.</p>
+      <input class="ni" type="text" id="mn" placeholder="Tu nombre (opcional)">
+      <div class="field">
+        <label>¿Con qué frecuencia usas herramientas de IA en tu trabajo?</label>
+        <div class="field-row">
+          <input type="range" min="1" max="7" step="1" value="4" id="mf" oninput="up('mf','lf',freqL)">
+          <span class="fval" id="lf">Una vez a la semana</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Un trabajo hecho con IA requiere menos esfuerzo personal</label>
+        <div class="field-row">
+          <input type="range" min="1" max="7" step="1" value="4" id="me" oninput="up('me','le',scaleL)">
+          <span class="fval" id="le">Neutral</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Usar IA reduce el mérito de quien realiza la tarea</label>
+        <div class="field-row">
+          <input type="range" min="1" max="7" step="1" value="4" id="mm" oninput="up('mm','lm',scaleL)">
+          <span class="fval" id="lm">Neutral</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>La IA es una ventaja competitiva para los profesionales</label>
+        <div class="field-row">
+          <input type="range" min="1" max="7" step="1" value="4" id="mc" oninput="up('mc','lc',scaleL)">
+          <span class="fval" id="lc">Neutral</span>
+        </div>
+      </div>
+      <div id="sent" class="sent">Respuestas enviadas. Gracias por participar.</div>
+      <button class="btn-g" id="sbtn" onclick="submit()">Enviar respuestas</button>
+      <button class="btn-r" id="rbtn" onclick="reset()">Rellenar como otra persona</button>
+    </div>
+  </div>
+
+  <div class="view" id="view-rrhh">
+    <div class="card">
+      <span class="slabel">Parámetros de empresa</span>
+      <div class="ep">
+        <div class="field" style="margin:0">
+          <label>Perfiles con alta adopción de IA</label>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input type="range" min="10" max="500" step="10" value="100" id="nemp" oninput="ue()" style="width:100%;flex:none">
+            <span class="fval" style="text-align:left;min-width:unset" id="lemp">100 perfiles</span>
+          </div>
+        </div>
+        <div class="field" style="margin:0">
+          <label>Salario medio anual de empleados IA (€)</label>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input type="range" min="20000" max="80000" step="1000" value="28000" id="sal" oninput="ue()" style="width:100%;flex:none">
+            <span class="fval" style="text-align:left;min-width:unset" id="lsal">28.000 €</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="kcard" style="display:none">
+      <span class="slabel">Impacto económico estimado del equipo</span>
+      <div class="kbig">
+        <div class="kbig-l">Coste estimado de rotación de talento con alta adopción de IA (anual)</div>
+        <div class="kbig-v" id="ktotal">—</div>
+        <div class="kbig-s">Este coste refleja el riesgo de perder a los perfiles con alta adopción de IA. Son los más demandados del mercado y los más propensos a abandonar la empresa si perciben que su trabajo no se reconoce justamente por usar IA.</div>
+      </div>
+      <div class="krow">
+        <div class="km">
+          <div class="kml">Perfiles con alta adopción en riesgo</div>
+          <div class="kmv" id="ktrot" style="color:var(--red)">—</div>
+        </div>
+        <div class="km">
+          <div class="kml">Evaluadores con cultura penalizadora</div>
+          <div class="kmv" id="ktpen" style="color:var(--red)">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="slabel">Evaluadores registrados — haz clic para ver el detalle</span>
+      <div id="mlist">
+        <div class="empty">Aún no hay respuestas.<br>El manager debe enviar el formulario primero.</div>
+      </div>
+    </div>
+
+    <div class="card" id="dcard" style="display:none">
+      <span class="slabel" id="dtitle">Detalle</span>
+      <div class="mgrid">
+        <div class="mc">
+          <div class="ml">Penalización mérito</div>
+          <div class="mv" id="dm">—</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">puntos escala 1–7</div>
+        </div>
+        <div class="mc">
+          <div class="ml">Penalización esfuerzo</div>
+          <div class="mv" id="de">—</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">puntos escala 1–7</div>
+        </div>
+      </div>
+      <div class="div"></div>
+      <span class="slabel">¿Qué explica este sesgo?</span>
+      <div id="sc"></div>
+      <div class="ins"><p id="di"></p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const freqL=['','Nunca','Menos de una vez al mes','Una vez al mes','Una vez a la semana','Varios días a la semana','Casi todos los días','Todos los días']
+const scaleL=['','Totalmente en desacuerdo','En desacuerdo','Algo en desacuerdo','Neutral','De acuerdo','Muy de acuerdo','Totalmente de acuerdo']
+let subs=[],sel=null
+
+function up(iid,lid,labels){document.getElementById(lid).textContent=labels[+document.getElementById(iid).value]}
+function fmt(n){return Math.round(n).toLocaleString('es-ES')}
+
+function sv(v,el){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('visible'))
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active-m','active-r'))
+  document.getElementById('view-'+v).classList.add('visible')
+  el.classList.add(v==='manager'?'active-m':'active-r')
+  if(v==='rrhh') document.getElementById('rtab').innerHTML='Vista RRHH'
+}
+
+function cr(merit,effort,freq){return Math.min(95,Math.max(10,Math.round(50+(merit-3.5)*10+(effort-3.5)*6+(7-freq)*3)))}
+function cp(merit,effort,freq){
+  const mf=(merit-3.5)/3.5,ef=(effort-3.5)/3.5,fp=(7-freq)/6
+  return{merit:(-(0.873+mf*0.4+fp*0.12)).toFixed(2),effort:(-(1.904+ef*0.5+fp*0.15)).toFixed(2)}
+}
+
+function getEuros(s){
+  const sal=+document.getElementById('sal').value
+  const n=+document.getElementById('nemp').value
+  const rr=s.risk>50?0.18:0.04
+  const er=Math.round(n*rr)
+  return{er,co:er*sal*0.80}
+}
+
+function submit(){
+  const name=document.getElementById('mn').value.trim()||'Evaluador '+(subs.length+1)
+  const freq=+document.getElementById('mf').value
+  const effort=+document.getElementById('me').value
+  const merit=+document.getElementById('mm').value
+  const comp=+document.getElementById('mc').value
+  const risk=cr(merit,effort,freq)
+  const penalty=cp(merit,effort,freq)
+  subs.push({name,freq,effort,merit,comp,risk,penalty})
+  document.getElementById('sent').style.display='block'
+  document.getElementById('sbtn').style.display='none'
+  document.getElementById('rbtn').style.display='block'
+  document.getElementById('rtab').innerHTML='Vista RRHH <span class="nb">nuevo</span>'
+  rl(); sd(subs.length-1)
+}
+
+function reset(){
+  document.getElementById('mn').value=''
+  ;['mf','me','mm','mc'].forEach(id=>document.getElementById(id).value=4)
+  document.getElementById('lf').textContent='Una vez a la semana'
+  ;['le','lm','lc'].forEach(id=>document.getElementById(id).textContent='Neutral')
+  document.getElementById('sent').style.display='none'
+  document.getElementById('sbtn').style.display='block'
+  document.getElementById('rbtn').style.display='none'
+}
+
+function ue(){
+  document.getElementById('lemp').textContent=document.getElementById('nemp').value+' perfiles'
+  document.getElementById('lsal').textContent=fmt(+document.getElementById('sal').value)+' €'
+  if(subs.length>0){updateKPI();if(sel!==null)sd(sel)}
+}
+
+function updateKPI(){
+  let totalCo=0,totalEr=0,penCount=0
+  subs.forEach(s=>{const e=getEuros(s);totalCo+=e.co;totalEr+=e.er;if(s.risk>50)penCount++})
+  document.getElementById('ktotal').textContent=fmt(totalCo)+' €'
+  document.getElementById('ktrot').textContent=totalEr+' perfiles'
+  document.getElementById('ktpen').textContent=penCount+' de '+subs.length
+  document.getElementById('kcard').style.display='block'
+}
+
+function rl(){
+  const list=document.getElementById('mlist')
+  list.innerHTML=''
+  subs.forEach((s,i)=>{
+    const init=s.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()
+    const ispen=s.risk>50
+    const bt=ispen?'Cultura IA-penalizadora':'Cultura IA-integradora'
+    const bc=ispen?'bh':'bl'
+    const bc2=ispen?'#C23B3B':'#1D9E75'
+    const avbg=ispen?'#FBEAEA':'#E6F5EF'
+    const avc=ispen?'#C23B3B':'#085041'
+    const att=s.merit>5?'actitud escéptica':s.merit<3?'actitud positiva':'actitud neutral'
+    const isNew=i===subs.length-1
+    const row=document.createElement('div')
+    row.className='mrow'+(sel===i?' sel':'')
+    row.onclick=()=>sd(i)
+    row.innerHTML=`<div class="av" style="background:${avbg};color:${avc}">${init}</div><div class="mi"><p class="mn">${s.name}${isNew?'<span class="nb">nuevo</span>':''}</p><p class="md">${att} · riesgo: ${s.risk}%</p></div><div style="text-align:right"><span class="badge ${bc}">${bt}</span><div class="rt"><div class="rf" style="width:${s.risk}%;background:${bc2}"></div></div></div>`
+    list.appendChild(row)
+  })
+  updateKPI()
+}
+
+function sd(i){
+  sel=i
+  const s=subs[i]
+  document.querySelectorAll('.mrow').forEach((r,idx)=>r.classList.toggle('sel',idx===i))
+  document.getElementById('dtitle').textContent='Detalle — '+s.name
+  document.getElementById('dm').textContent=s.penalty.merit
+  document.getElementById('dm').style.color=parseFloat(s.penalty.merit)<-1?'#C23B3B':'#B45309'
+  document.getElementById('de').textContent=s.penalty.effort
+  document.getElementById('de').style.color='#C23B3B'
+  const ms=(s.merit-1)/6,fs=(7-s.freq)/6
+  document.getElementById('sc').innerHTML=`
+    <div class="sr"><span class="sn">Tarea creativa</span><div class="st"><div class="sb" style="width:${Math.round(ms*90)}%;background:#C23B3B"></div></div><span class="sv">+${(ms*0.5).toFixed(2)}</span></div>
+    <div class="sr"><span class="sn">Actitud mérito-IA</span><div class="st"><div class="sb" style="width:${Math.round(ms*70)}%;background:#C23B3B"></div></div><span class="sv">+${(ms*0.35).toFixed(2)}</span></div>
+    <div class="sr"><span class="sn">Frecuencia uso IA</span><div class="st"><div class="sb" style="width:${Math.round(fs*50)}%;background:#1D9E75"></div></div><span class="sv">-${(fs*0.15).toFixed(2)}</span></div>`
+  const ispen=s.risk>50
+  document.getElementById('di').textContent=ispen
+    ?`${s.name} presenta un perfil de Cultura IA-penalizadora. Si evalúa a un trabajador que declare haber usado IA, aplicará una penalización significativa en mérito y esfuerzo aunque el resultado sea igual de bueno.`
+    :`${s.name} presenta un perfil de Cultura IA-integradora. La penalización esperada es baja — perfil favorable para liderar la cultura de transparencia sobre IA en el equipo.`
+  document.getElementById('dcard').style.display='block'
+}
+</script>
+</body>
+</html>
